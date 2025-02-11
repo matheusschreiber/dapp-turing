@@ -1,0 +1,4 @@
+- [ ] Ranking com valores em ponto flutuante
+- [ ] Multiplos disparos de eventos 
+- [ ] Address do hardhat para testes
+- [ ] Custo do constructor do contrato
