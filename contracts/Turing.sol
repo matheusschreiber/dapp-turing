@@ -16,14 +16,13 @@ contract Turing is ERC20 {
     mapping(address => bool) public authorizedUsers;
     mapping(address => mapping(string => bool)) public hasVoted;
 
-    string[20] public names;
+    string[19] public names;
 
     constructor() ERC20("Turing", "TUR") {
         ownerDeploy = msg.sender;
         professora = 0x502542668aF09fa7aea52174b9965A7799343Df7;
 
-        address[20] memory addresses = [
-            0x78eaaE5dE26E7D4855Da96Bb1463eAf8f1137496, // matheus
+        address[19] memory addresses = [
             0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, // owner (hardhat for testing)
             0x70997970C51812dc3A010C7d01b50e0d17dc79C8,
             0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,
@@ -46,7 +45,7 @@ contract Turing is ERC20 {
         ];
 
         names = [
-            "matheus", "owner", "nome1", "nome2", "nome3", "nome4", "nome5", "nome6",
+            "owner", "nome1", "nome2", "nome3", "nome4", "nome5", "nome6",
             "nome7", "nome8", "nome9", "nome10", "nome11", "nome12",
             "nome13", "nome14", "nome15", "nome16", "nome17", "nome18"
         ];
@@ -104,6 +103,11 @@ contract Turing is ERC20 {
         _;
     }
 
+    // ####################### EVENTS ##############################
+    
+    event DataUpdated();
+
+
     // ####################### FUNCTIONS ###########################
 
     function issueToken(string memory _codinome, uint256 _saTuringAmount)
@@ -112,6 +116,8 @@ contract Turing is ERC20 {
         onlySelectedAddresses(_codinome)
     {
         _mint(nameToAddress[_codinome], _saTuringAmount);
+
+        emit DataUpdated();
     }
 
     function vote(string memory _codinome, uint256 _saTuringAmount)
@@ -129,6 +135,8 @@ contract Turing is ERC20 {
 
         _mint(nameToAddress[_codinome], _saTuringAmount);
         _mint(msg.sender, 2 * 10 ** 17);
+        
+        emit DataUpdated();
     }
 
     function votingOn() external onlyOwnerOrProfessora {
@@ -143,8 +151,8 @@ contract Turing is ERC20 {
         return isVotingOn;
     }
 
-    function getBalances() public view returns (string[20] memory, uint256[20] memory) {
-        uint256[20] memory balances;
+    function getBalances() public view returns (string[19] memory, uint256[19] memory) {
+        uint256[19] memory balances;
         for (uint256 i = 0; i < names.length; i++) {
             balances[i] = balanceOf(nameToAddress[names[i]]);
         }
