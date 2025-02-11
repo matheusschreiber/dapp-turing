@@ -23,8 +23,9 @@ contract Turing is ERC20 {
         professora = 0x502542668aF09fa7aea52174b9965A7799343Df7;
 
         address[19] memory addresses = [
-            0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, // owner (hardhat for testing)
-            0x70997970C51812dc3A010C7d01b50e0d17dc79C8,
+            // 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, // owner hardhat
+            // 0x70997970C51812dc3A010C7d01b50e0d17dc79C8, // nome1
+            0x5316E9c3336A34Eb2803122F8dA146e1272412C8,
             0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,
             0x90F79bf6EB2c4f870365E785982E1f101E93b906,
             0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65,
@@ -41,27 +42,27 @@ contract Turing is ERC20 {
             0xcd3B766CCDd6AE721141F452C550Ca635964ce71,
             0x2546BcD3c84621e976D8185a91A922aE77ECEc30,
             0xbDA5747bFD65F08deb54cb465eB87D40e51B197E,
-            0xdD2FD4581271e230360230F9337D5c0430Bf44C0
+            0xdD2FD4581271e230360230F9337D5c0430Bf44C0,
+            0x78eaaE5dE26E7D4855Da96Bb1463eAf8f1137496 //matheus
         ];
 
         names = [
-            "owner", "nome1", "nome2", "nome3", "nome4", "nome5", "nome6",
+            "nome1", "nome2", "nome3", "nome4", "nome5", "nome6",
             "nome7", "nome8", "nome9", "nome10", "nome11", "nome12",
-            "nome13", "nome14", "nome15", "nome16", "nome17", "nome18"
+            "nome13", "nome14", "nome15", "nome16", "nome17", "nome18",
+            "matheus"
         ];
 
         for (uint256 i = 0; i < 19; i++) {
             nameToAddress[names[i]] = addresses[i];
-            if (i > 0) {
-                authorizedUsers[addresses[i]] = true;
-            }
+            authorizedUsers[addresses[i]] = true;
         }
     }
 
     // ####################### MODIFIERS ###########################
 
     modifier onlyOwnerOrProfessora() {
-        require(msg.sender == professora || msg.sender == ownerDeploy, "Nao autorizado");
+        require(msg.sender == professora || msg.sender == ownerDeploy, "Apenas owner e professora");
         _;
     }
 
@@ -71,7 +72,13 @@ contract Turing is ERC20 {
     }
 
     modifier onlyAuthorized() {
-        require(authorizedUsers[msg.sender], "Nao autorizado");
+        require(authorizedUsers[msg.sender], 
+            string(
+                abi.encodePacked(
+                    "Nao autorizado (", Strings.toHexString(msg.sender), ")"
+                )
+            )
+        );
         _;
     }
 
@@ -122,7 +129,6 @@ contract Turing is ERC20 {
 
     function vote(string memory _codinome, uint256 _saTuringAmount)
         external
-        onlyOwnerOrProfessora
         onlyValidAmount(_saTuringAmount)
         onlyAuthorized
         onlyVotingOn

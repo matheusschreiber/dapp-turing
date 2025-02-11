@@ -2,8 +2,8 @@ import { ethers } from 'ethers'
 import { useEffect, useState } from 'react';
 import TokenArtifact from "./artifacts/contracts/Turing.sol/Turing.json"
 
-const tokenAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-const localBlockchainAddress = 'http://localhost:8545'
+// const tokenAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3" // hardhat local address
+const tokenAddress = "0x80117a98fd4907fb08564f9aa75abb6891b24a27" // sepolia deployed address
 
 function App() {
 
@@ -12,6 +12,7 @@ function App() {
   const [codeName, setCodeName] = useState()
   const [isVotingOn, setIsVotingOn] = useState(true)
   const [balances, setBalances] = useState([])
+
   const SCALE_SATURINGS = 18; // 10^18
 
   const handleErroMessage = (error) => {
@@ -27,7 +28,8 @@ function App() {
     }
   }
 
-  const provider = new ethers.providers.JsonRpcProvider(localBlockchainAddress)
+  // const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545') // hardhat local address
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
 
   async function intializeContract(init) {
@@ -41,19 +43,25 @@ function App() {
   }
 
   async function getTokenData() {
-    const contract = await intializeContract(signer)
-    const name = await contract.name();
-    const symbol = await contract.symbol();
-    const tokenData = { name, symbol }
-    setTokenData(tokenData);
-
-    const voteStatus = await contract.votingStatus();
-    setIsVotingOn(voteStatus);
-
-    contract.on("DataUpdated", () => {
-      console.log(`[EVENT] Data updated!`);
-      getBalances();
-    });
+    if (typeof window.ethereum !== 'undefined') {
+      const contract = await intializeContract(signer)
+      try{
+        const name = await contract.name();
+        const symbol = await contract.symbol();
+        const tokenData = { name, symbol }
+        setTokenData(tokenData);
+    
+        const voteStatus = await contract.votingStatus();
+        setIsVotingOn(voteStatus);
+    
+        contract.on("DataUpdated", () => {
+          console.log(`[EVENT] Data updated!`);
+          getBalances();
+        });
+      } catch(error) {
+        handleErroMessage(error);
+      }
+    }
   }
 
   async function getBalances() {
@@ -95,6 +103,12 @@ function App() {
   }
 
   async function vote() {
+    const form = document.getElementById('form-votes');
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
     if (typeof window.ethereum !== 'undefined') {
       const contract = await intializeContract(signer)
       try {
@@ -134,11 +148,10 @@ function App() {
     }
   }
 
-  useEffect(() => {
+  useEffect(()=>{
     getTokenData();
     getBalances();
-    console.log('Starting...')
-  }, [tokenAddress])
+  }, [])
 
   return (
     <div className='bg-slate-900 min-h-screen text-gray-300 p-10'>
@@ -150,6 +163,7 @@ function App() {
               className='w-5 rounded-full'
               src="https://s2-galileu.glbimg.com/GgrZ49DBt1ML6GlzKyDcFyJEhEY=/0x0:330x335/888x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_fde5cd494fb04473a83fa5fd57ad4542/internal_photos/bs/2024/b/o/deNkTTTsWk1WAwaFrOog/alan-turing-1912-1954-in-1936-at-princeton-university.jpg" />
             <p className='text-xl font-bold'>{tokenData.symbol}</p>
+            <p className='text-xl font-bold'>{tokenData.name}</p>
           </div>
           <div>
             <span className='mr-5'>Voting status:</span>
@@ -162,10 +176,10 @@ function App() {
             }
           </div>
         </div>
+
       </header>
 
       <main className='mt-10 flex w-full gap-3'>
-        {/* CONTROLS */}
         <div className='flex flex-col gap-3'>
           <div className='rounded-lg bg-gray-800 px-3 py-2 w-[200px] h-fit'>
             <p>Voting</p>
@@ -173,7 +187,11 @@ function App() {
             <form id='form-votes' className='flex flex-col gap-3 mt-5'>
               <div className='text-sm'>
                 <label className='text-gray-600'>Codename</label>
-                <input onChange={e => setCodeName(e.target.value)} placeholder="eg.: nome1" className='w-full bg-gray-900 rounded-md py-1 px-2' required />
+                <select className='w-full bg-gray-900 rounded-md py-1 px-2' onChange={e => setCodeName(e.target.value)} >
+                  {balances.map((balance, index) => (
+                    <option key={index} value={balance[0]}>{balance[0]}</option>
+                  ))}
+                </select>
               </div>
 
               <div className='text-sm'>
@@ -191,7 +209,6 @@ function App() {
           </div>
         </div>
 
-        {/* RANKING */}
         <div className='rounded-lg bg-gray-800 px-3 py-2 w-[300px]'>
           <div className='flex items-center justify-between gap-10'>
             <p>Rankings</p>
