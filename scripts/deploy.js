@@ -11,11 +11,11 @@ async function main() {
   
     console.log("Account balance:", (await deployer.getBalance()).toString());
   
-    const Token = await hre.ethers.getContractFactory("Turing");
-    const token = await Token.deploy();
-    await token.deployed();
+    const Turing = await hre.ethers.getContractFactory("Turing");
+    const contract = await Turing.deploy();
+    await contract.deployed();
   
-    console.log("Token address:", token.address);
+    console.log("Token address:", contract.address);
   
   }
   
