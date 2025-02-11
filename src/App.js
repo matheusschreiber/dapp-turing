@@ -68,6 +68,7 @@ function App() {
             a,
             ethers.utils.formatUnits(ethers.BigNumber.from(response[1][i]), SCALE_SATURINGS).toString()
           ])
+        aux.sort((a, b) => b[1] - a[1])
         setBalances(aux);
       } catch (error) {
         handleErroMessage(error);
@@ -137,16 +138,18 @@ function App() {
 
   useEffect(() => {
     getTokenData();
-    let aux = 0
-    setInterval(() => {
-      if (aux >= MAX_SECS_RELOAD) {
-        getBalances()
-        aux = 0
-      } else {
-        aux += 0.1
-      }
-      setSecondsToReload(aux)
-    }, 100)
+    const intervalId = setInterval(() => {
+      setSecondsToReload((prevAux) => {
+        const newAux = prevAux + 0.1;
+        if (newAux >= MAX_SECS_RELOAD) {
+          getBalances();
+          return 0;
+        }
+        return newAux;
+      });
+    }, 100);
+
+    return () => clearInterval(intervalId);
   }, [])
 
   return (
@@ -215,7 +218,7 @@ function App() {
                   <td className='font-bold pr-4'>{balance[0]}</td>
                   <td className='font-bold text-pink-500 text-right pr-2'><span className='truncate w-5'>{balance[1]}</span></td>
                   <td className='font-bold text-pink-500'>TUR</td>
-                  <td className='font-bold text-green-500 text-right'>+2.2%</td>
+                  {/* <td className='font-bold text-green-500 text-right'></td> */}
                 </tr>
               ))}
             </tbody>
